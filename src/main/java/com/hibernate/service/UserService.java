@@ -61,6 +61,138 @@ public class UserService {
         }
     }
 
+    public void persistWithTransaction(final User user) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.persist(user);
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public void persistWithTransactionAndAfterPersistAddNewEmail(final User user, final String emailAfterSave) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.persist(user);
+
+            user.setEmail(emailAfterSave);
+
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public void saveOrUpdateWithTransaction(final User user) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.saveOrUpdate(user);
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public void saveOrUpdateWithTransactionAndAfterPersistAddNewEmail(final User user, final String emailAfterSave) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.saveOrUpdate(user);
+
+            user.setEmail(emailAfterSave);
+
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public void updateWithTransaction(final User user) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.update(user);
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public void updateWithTransactionAfterUpdateEmail(final User user, final String afterUpdateEmail) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+            session.update(user);
+            user.setEmail(afterUpdateEmail);
+
+            transaction.commit();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public int mergeWithTransactionAfterMargeEmailOldValueAndNewValue(final User user, final String margeAfterEmailOldValue, final String margeAfterEmailNewValue) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+
+            final User newUser = (User) session.merge(user);
+
+            user.setEmail(margeAfterEmailOldValue);
+            newUser.setEmail(margeAfterEmailNewValue);
+
+            transaction.commit();
+            return newUser.getId();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
+    public int mergeWithTransactionAfterMargeEmailChangeOrderNewValueAndOldValue(final User user, final String margeAfterEmailOldValue, final String margeAfterEmailNewValue) {
+        Session session = null;
+        try{
+            session = sessionFactory.openSession();
+            final Transaction transaction = session.beginTransaction();
+
+            final User newUser = (User) session.merge(user);
+
+            newUser.setEmail(margeAfterEmailNewValue);
+            user.setEmail(margeAfterEmailOldValue);
+
+            transaction.commit();
+            return newUser.getId();
+        }finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+    }
+
     public User loadWithOutTransaction(final int id) {
         Session session = null;
         try{

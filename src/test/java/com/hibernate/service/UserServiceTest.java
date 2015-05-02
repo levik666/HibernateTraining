@@ -1,6 +1,5 @@
 package com.hibernate.service;
 
-
 import com.hibernate.entity.User;
 import org.hibernate.ObjectNotFoundException;
 import org.junit.Ignore;
@@ -9,6 +8,8 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -30,6 +31,12 @@ public class UserServiceTest {
     private static final int USER_ID_NOT_FOUND = 100;
     private static final String EMAIL_BEFORE_SAVE = "test_email1_before_save";
     private static final String EMAIL_AFTER_SAVE = "test_email1_after_save";
+    private static final String EMAIL_AFTER_PERSIST = "test_email1_after_save";
+    private static final String EMAIL_NEW = "test_email3_new";
+    private static final String EMAIL_AFTER_UPDATE = "test_email1_after_update";
+
+    private static final String EMAIL_OLD_MARGE_VALUE = "test_email1_marge_old_value";
+    private static final String EMAIL_NEW_MARGE_VALUE = "test_email1_marge_new_value";
 
 
     private ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
@@ -134,6 +141,119 @@ public class UserServiceTest {
         assertEquals("User should be equals", expectedUser, actualUser);
     }
 
+    @Test
+    public void shouldSuccessfulPersistNewUserWithTransaction(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        userService.persistWithTransaction(user);
+
+        final List<User> actualUsers = userService.findByEmail(EMAIL_3);
+        assertEquals("User should be one", 1, actualUsers.size());
+
+        final User actualUser = actualUsers.get(0);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", user, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulPersistNewUserWithTransactionAndAddNewEmailAfterCallPersist(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        userService.persistWithTransactionAndAfterPersistAddNewEmail(user, EMAIL_AFTER_PERSIST);
+
+        final List<User> actualUsers = userService.findByEmail(EMAIL_AFTER_PERSIST);
+        assertEquals("User should be one", 1, actualUsers.size());
+
+        final User actualUser = actualUsers.get(0);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", user, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulSaveOrUpdateNewUserWithTransaction(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        userService.saveOrUpdateWithTransaction(user);
+
+        final List<User> actualUsers = userService.findByEmail(EMAIL_3);
+        assertEquals("User should be one", 1, actualUsers.size());
+
+        final User actualUser = actualUsers.get(0);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", user, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulSaveOrUpdateNewUserWithTransactionAndAddNewEmailAfterCallPersist(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        userService.saveOrUpdateWithTransactionAndAfterPersistAddNewEmail(user, EMAIL_AFTER_PERSIST);
+
+        final List<User> actualUsers = userService.findByEmail(EMAIL_AFTER_PERSIST);
+        assertEquals("User should be one", 1, actualUsers.size());
+
+        final User actualUser = actualUsers.get(0);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", user, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulUpdateUserWithTransaction(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        int userId = userService.saveWithOutTransaction(user);
+
+        final User getUserById = userService.getWithTransaction(userId);
+        getUserById.setEmail(EMAIL_NEW);
+
+        userService.updateWithTransaction(getUserById);
+
+        final User actualUser = userService.findById(userId);
+        final User expectedUser = createUser(USER_NAME_3, PASSWORD_3, EMAIL_NEW);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", expectedUser, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulUpdateUserWithTransactionAfterUpdateEmail(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        int userId = userService.saveWithOutTransaction(user);
+
+        final User getUserById = userService.getWithTransaction(userId);
+        getUserById.setEmail(EMAIL_NEW);
+
+        userService.updateWithTransactionAfterUpdateEmail(getUserById, EMAIL_AFTER_UPDATE);
+
+        final User actualUser = userService.findById(userId);
+        final User expectedUser = createUser(USER_NAME_3, PASSWORD_3, EMAIL_AFTER_UPDATE);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", expectedUser, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulMergeWithTransactionAfterMargeEmailOldValueAndNewValue(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        int userId = userService.mergeWithTransactionAfterMargeEmailOldValueAndNewValue(user, EMAIL_OLD_MARGE_VALUE, EMAIL_NEW_MARGE_VALUE);
+
+        final User actualUser = userService.findById(userId);
+        final User expectedUser = createUser(USER_NAME_3, PASSWORD_3, EMAIL_NEW_MARGE_VALUE);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", expectedUser, actualUser);
+    }
+
+    @Test
+    public void shouldSuccessfulMergeWithTransactionAfterMargeEmailChangeOrderNewValueAndOldValue(){
+        final User user = createUser(USER_NAME_3, PASSWORD_3, EMAIL_3);
+        int userId = userService.mergeWithTransactionAfterMargeEmailChangeOrderNewValueAndOldValue(user, EMAIL_OLD_MARGE_VALUE, EMAIL_NEW_MARGE_VALUE);
+
+        final User actualUser = userService.findById(userId);
+        final User expectedUser = createUser(USER_NAME_3, PASSWORD_3, EMAIL_NEW_MARGE_VALUE);
+
+        assertNotNull("User should be exist ", actualUser);
+        assertEquals("User should be equals", expectedUser, actualUser);
+    }
 
     private User createUser(final String userName, final String password, final String email){
         final User user = new User();
